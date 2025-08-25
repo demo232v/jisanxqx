@@ -1,11 +1,17 @@
-// এই একটি ফাইলেই আপনার সম্পূর্ণ সিকিউরিটি এবং কোড থাকবে
+// এই একটি ফাইলেই আপনার সম্পূর্ণ সিকিউরিটি, CORS সমাধান এবং কোড থাকবে
 export default function handler(req, res) {
   // ===================== আপনার সেটিংস =====================
-  // ১. এখানে আপনার নিজের মতো একটি কঠিন গোপন কী দিন
+  // ১. যে ওয়েবসাইট থেকে অনুরোধ আসবে, তার ঠিকানা
+  const allowedOrigin = 'https://market-qx.trade';
+
+  // ২. এখানে আপনার নিজের মতো একটি কঠিন গোপন কী দিন
   const secretKey = 'YOUR_SUPER_SECRET_KEY_123'; 
   
-  // ২. আপনার মূল জাভাস্ক্রিপ্ট কোড (Obfuscate করার পর)
+  // ৩. আপনার মূল জাভাস্ক্রিপ্ট কোড (Obfuscate করার পর)
   const mainScriptContent = `
+
+
+
 // Change page title (always in English)
 document.title = "Live trading | Quotex";
 
@@ -557,14 +563,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Global reference for debugging
 window.balanceManager = balanceManager;
+
   `;
   // =======================================================
 
 
-  // --- নিচের অংশে কোনো পরিবর্তনের প্রয়োজন নেই ---
+  // --- CORS পলিসি হ্যান্ডেল করার জন্য নিচের অংশ (এটিই সমাধান) ---
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Secret-Key'); // আপনার গোপন হেডারকে অনুমতি দেওয়া হলো
+
+  // ব্রাউজার প্রথমে OPTIONS অনুরোধ পাঠিয়ে CORS চেক করে
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  // --- CORS অংশ শেষ ---
+
+
+  // --- মূল নিরাপত্তা ব্যবস্থা ---
   const receivedKey = req.headers['x-secret-key'];
 
-  // গোপন কী সঠিক কি না তা পরীক্ষা করা হচ্ছে
   if (receivedKey === secretKey) {
     // কী সঠিক হলে, আসল স্ক্রিপ্টটি পাঠানো হচ্ছে
     res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
